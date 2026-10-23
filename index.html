@@ -434,22 +434,7 @@
       background: var(--color-white);
     }
 
-    /* Плашка-заглушка, пока ссылка на форму не настроена */
-    .yandex-form-placeholder {
-      padding: 40px 24px;
-      text-align: center;
-      color: var(--color-muted);
-    }
-    .yandex-form-placeholder code {
-      display: inline-block;
-      background: var(--color-white);
-      border: 1px dashed var(--color-border);
-      border-radius: 8px;
-      padding: 6px 12px;
-      font-size: 0.85rem;
-      margin-top: 10px;
-      word-break: break-all;
-    }
+    /* Плашка-заглушка больше не используется (форма встроена напрямую) */
 
     .yandex-form-note {
       max-width: 720px;
@@ -707,13 +692,10 @@
 
   <!-- ============================================================
        ЗАЯВКА: встроенная Яндекс Форма (iframe-виджет)
-       Как подключить свою форму:
-       1. Откройте forms.yandex.ru → создайте форму (поля: Имя*, Телефон*,
-          Email, Тема обращения, Комментарий, чекбокс согласия).
-       2. Нажмите «Поделиться» → «Встроить на сайт» → скопируйте ссылку
-          вида https://forms.yandex.ru/cloud/XXXXXXX/.
-       3. Вставьте её в константу YANDEX_FORM_URL в <script>-блоке внизу страницы.
-       Пока ссылка не указана — показывается заглушка.
+       Официальный код встраивания с forms.yandex.ru
+       («Поделиться → Встроить на сайт»).
+       Если нужно заменить форму на другую — обновите id в двух
+       местах: в src iframe и в атрибуте name.
        ============================================================ -->
   <section id="contact">
     <div class="container">
@@ -721,13 +703,17 @@
       <p class="section-subtitle">Заполните форму — я свяжусь с вами в течение дня, чтобы ответить на вопросы или записать на консультацию.</p>
 
       <div class="yandex-form-wrap" id="yandexFormWrap">
-        <!-- Плашка-заглушка: видна, пока YANDEX_FORM_URL не заполнен -->
-        <div class="yandex-form-placeholder" id="yandexFormPlaceholder">
-          📋 Здесь будет ваша Яндекс Форма.<br>
-          Укажите ссылку на форму в переменной
-          <code>YANDEX_FORM_URL</code> в конце файла index.html.
-        </div>
-        <!-- iframe формы добавляется сюда через JavaScript -->
+        <!-- Официальный embed-скрипт Яндекс Форм (подгоняет высоту iframe) -->
+        <script src="https://forms.yandex.ru/_static/embed.js"></script>
+        <!-- Встроенная Яндекс Форма: iframe-виджет -->
+        <iframe
+          src="https://forms.yandex.ru/u/6adb275795add5af64f2d8c3?iframe=1"
+          frameborder="0"
+          name="ya-form-6adb275795add5af64f2d8c3"
+          width="650"
+          title="Форма заявки — Яндекс Формы"
+          loading="lazy"
+          class="yandex-form-frame"></iframe>
       </div>
 
       <p class="yandex-form-note">
@@ -772,46 +758,28 @@
       });
     });
 
-    // ---------- Внедрение Яндекс Формы ----------
-    // Вставьте сюда ссылку из «Поделиться → Встроить на сайт» на forms.yandex.ru.
-    // Пример: 'https://forms.yandex.ru/cloud/6512f3a4b2c1d80a1bcdef12/'
-    const YANDEX_FORM_URL = ''; // <-- ЗАМЕНИТЕ НА СВОЮ ССЫЛКУ
-
-    const formWrap = document.getElementById('yandexFormWrap');
-    const placeholder = document.getElementById('yandexFormPlaceholder');
-
-    if (YANDEX_FORM_URL.trim() !== '') {
-      // Убираем заглушку и создаём iframe с формой
-      placeholder.remove();
-
-      const frame = document.createElement('iframe');
-      frame.src = YANDEX_FORM_URL;
-      frame.className = 'yandex-form-frame';
-      frame.title = 'Форма заявки — Яндекс Формы';
-      frame.loading = 'lazy';
-      // Разрешаем внутри формы полноэкранный режим и загрузку файлов (если нужны)
-      frame.allow = 'fullscreen';
-      formWrap.appendChild(frame);
-
-      // Подгоняем высоту iframe под содержимое формы, чтобы не было
-      // внутренней прокрутки. Яндекс отправляет postMessage с высотой.
+    // ---------- Подгонка высоты iframe Яндекс Формы ----------
+    // Официальный embed-скрипт (forms.yandex.ru/_static/embed.js) слушает
+    // postMessage от iframe и сам меняет его высоту. Этот обработчик —
+    // запасной вариант: если по какой-то причине скрипт не отработал,
+    // оставляем разумную минимальную высоту, чтобы форма не «схлопнулась».
+    const yFrame = document.querySelector('.yandex-form-frame');
+    if (yFrame) {
       window.addEventListener('message', (e) => {
-        // Проверяем, что сообщение от Яндекса и содержит числовую высоту
-        if (typeof e.data === 'string' && e.data.indexOf('height=') === 0) {
+        // Сообщения о высоте приходят только от Яндекс Форм
+        if (e.origin && e.origin.indexOf('yandex') !== -1 && typeof e.data === 'string' && e.data.indexOf('height=') === 0) {
           const height = parseInt(e.data.replace('height=', ''), 10);
           if (!isNaN(height) && height > 0) {
-            frame.style.height = height + 40 + 'px'; // небольшой запас
+            yFrame.style.height = height + 40 + 'px'; // небольшой запас
           }
         }
       });
 
-      // Fallback: если postMessage не пришёл (например, форма короткая),
-      // через несколько секунд оставляем разумную высоту по умолчанию
+      // Fallback: через несколько секунд, если высота так и не была задана
       setTimeout(() => {
-        if (!frame.style.height) frame.style.height = '700px';
+        if (!yFrame.style.height) yFrame.style.height = '700px';
       }, 3000);
     }
-    // Если YANDEX_FORM_URL пуст — остаётся видимой заглушка (placeholder)
   </script>
 </body>
 </html>
