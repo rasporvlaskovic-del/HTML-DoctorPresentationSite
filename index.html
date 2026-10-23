@@ -409,105 +409,56 @@
     .referral-visual strong { font-size: 1.2rem; }
 
     /* ============================================================
-       9. БЛОК «ЗАЯВКА» — форма с валидацией
+       9. БЛОК «ЗАЯВКА» — встроенная Яндекс Форма (iframe)
        ============================================================ */
     #contact { background: var(--color-white); }
 
-    .form-wrap {
-      max-width: 640px;
+    /* Контейнер виджета Яндекс Формы */
+    .yandex-form-wrap {
+      max-width: 720px;
       margin: 0 auto;
       background: var(--color-bg);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-card);
-      padding: 36px;
+      padding: 12px;
       box-shadow: var(--shadow-soft);
     }
 
-    .form-group { margin-bottom: 20px; }
-
-    label {
+    /* Сам iframe формы: ширину задаёт Яндекс, высоту подгоняет JS */
+    .yandex-form-frame {
       display: block;
-      font-weight: 600;
-      margin-bottom: 6px;
-      font-size: 0.95rem;
-    }
-
-    .required-mark { color: #C0392B; }
-
-    input[type="text"],
-    input[type="tel"],
-    input[type="email"],
-    select,
-    textarea {
       width: 100%;
-      padding: 13px 16px;
-      border: 1px solid var(--color-border);
-      border-radius: 12px; /* мягкие скругления полей */
-      font-size: 1rem;
-      font-family: inherit;
-      background: var(--color-white);
-      color: var(--color-text);
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    /* Фокусная обводка зелёным */
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: var(--color-accent);
-      box-shadow: 0 0 0 3px rgba(46, 125, 94, 0.2);
-    }
-
-    textarea { resize: vertical; min-height: 110px; }
-
-    /* Состояние ошибки валидации */
-    .field-error input,
-    .field-error select,
-    .field-error textarea {
-      border-color: #C0392B;
-    }
-    .error-msg {
-      display: none;
-      color: #C0392B;
-      font-size: 0.82rem;
-      margin-top: 5px;
-    }
-    .field-error .error-msg { display: block; }
-
-    /* Чекбокс согласия */
-    .checkbox-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      margin-bottom: 24px;
-    }
-    .checkbox-row input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      margin-top: 3px;
-      accent-color: var(--color-accent);
-      flex-shrink: 0;
-    }
-    .checkbox-row label {
-      font-weight: 400;
-      margin-bottom: 0;
-      font-size: 0.92rem;
-    }
-
-    .form-submit { width: 100%; font-size: 1.05rem; }
-
-    /* Сообщение об успешной отправке */
-    .success-message {
-      display: none;
-      margin-top: 20px;
-      padding: 16px 20px;
-      background: rgba(46, 125, 94, 0.12);
-      border: 1px solid var(--color-accent);
-      color: var(--color-accent);
+      min-height: 600px;
+      border: none;
       border-radius: 12px;
-      font-weight: 600;
+      background: var(--color-white);
+    }
+
+    /* Плашка-заглушка, пока ссылка на форму не настроена */
+    .yandex-form-placeholder {
+      padding: 40px 24px;
+      text-align: center;
+      color: var(--color-muted);
+    }
+    .yandex-form-placeholder code {
+      display: inline-block;
+      background: var(--color-white);
+      border: 1px dashed var(--color-border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      margin-top: 10px;
+      word-break: break-all;
+    }
+
+    .yandex-form-note {
+      max-width: 720px;
+      margin: 14px auto 0;
+      font-size: 0.82rem;
+      color: var(--color-muted);
       text-align: center;
     }
-    .success-message.visible { display: block; }
+    .yandex-form-note a { color: var(--color-accent); }
 
     /* ============================================================
        10. ФУТЕР
@@ -601,7 +552,7 @@
 
       .referral-inner { grid-template-columns: 1fr; }
 
-      .form-wrap { padding: 24px 18px; }
+      .yandex-form-wrap { padding: 8px; }
 
       .btn { padding: 13px 22px; font-size: 0.95rem; }
     }
@@ -755,68 +706,34 @@
   </section>
 
   <!-- ============================================================
-       ЗАЯВКА: форма с JS-валидацией (имитация отправки)
+       ЗАЯВКА: встроенная Яндекс Форма (iframe-виджет)
+       Как подключить свою форму:
+       1. Откройте forms.yandex.ru → создайте форму (поля: Имя*, Телефон*,
+          Email, Тема обращения, Комментарий, чекбокс согласия).
+       2. Нажмите «Поделиться» → «Встроить на сайт» → скопируйте ссылку
+          вида https://forms.yandex.ru/cloud/XXXXXXX/.
+       3. Вставьте её в константу YANDEX_FORM_URL в <script>-блоке внизу страницы.
+       Пока ссылка не указана — показывается заглушка.
        ============================================================ -->
   <section id="contact">
     <div class="container">
       <h2>Заявка</h2>
       <p class="section-subtitle">Заполните форму — я свяжусь с вами в течение дня, чтобы ответить на вопросы или записать на консультацию.</p>
 
-      <div class="form-wrap">
-        <form id="requestForm" novalidate>
-          <!-- Имя (обязательно) -->
-          <div class="form-group" id="group-name">
-            <label for="name">Имя <span class="required-mark">*</span></label>
-            <input type="text" id="name" name="name" placeholder="Как к вам обращаться?" autocomplete="name">
-            <span class="error-msg">Пожалуйста, укажите имя.</span>
-          </div>
-
-          <!-- Телефон или мессенджер (обязательно) -->
-          <div class="form-group" id="group-contact">
-            <label for="phone">Телефон или мессенджер <span class="required-mark">*</span></label>
-            <input type="tel" id="phone" name="phone" placeholder="+7 (___) ___-__-__ / @nickname" autocomplete="tel">
-            <span class="error-msg">Укажите телефон или ник в мессенджере для связи.</span>
-          </div>
-
-          <!-- Email (опционально) -->
-          <div class="form-group" id="group-email">
-            <label for="email">Email <span style="font-weight:400;color:var(--color-muted);">(необязательно)</span></label>
-            <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email">
-            <span class="error-msg">Похоже, в email есть опечатка.</span>
-          </div>
-
-          <!-- Тема обращения -->
-          <div class="form-group" id="group-subject">
-            <label for="subject">Тема обращения</label>
-            <select id="subject" name="subject">
-              <option value="consultation">Консультация педиатра</option>
-              <option value="products">Вопрос по продуктам</option>
-              <option value="partnership">Партнёрство / реферальная программа</option>
-            </select>
-          </div>
-
-          <!-- Комментарий -->
-          <div class="form-group">
-            <label for="message">Комментарий</label>
-            <textarea id="message" name="message" placeholder="Кратко опишите ваш вопрос или ситуацию…"></textarea>
-          </div>
-
-          <!-- Чекбокс согласия (обязательный) -->
-          <div class="checkbox-row" id="group-consent">
-            <input type="checkbox" id="consent" name="consent">
-            <label for="consent">Согласен на обработку персональных данных <span class="required-mark">*</span></label>
-          </div>
-          <span class="error-msg" id="consentError" style="display:none; margin:-14px 0 18px;">Для отправки заявки необходимо согласие на обработку данных.</span>
-
-          <!-- Кнопка отправки -->
-          <button type="submit" class="btn btn-accent form-submit">Отправить заявку</button>
-
-          <!-- Сообщение об успехе (показывается JS-ом) -->
-          <div class="success-message" id="successMessage" role="status">
-            Спасибо! Я свяжусь с вами в течение дня 💚
-          </div>
-        </form>
+      <div class="yandex-form-wrap" id="yandexFormWrap">
+        <!-- Плашка-заглушка: видна, пока YANDEX_FORM_URL не заполнен -->
+        <div class="yandex-form-placeholder" id="yandexFormPlaceholder">
+          📋 Здесь будет ваша Яндекс Форма.<br>
+          Укажите ссылку на форму в переменной
+          <code>YANDEX_FORM_URL</code> в конце файла index.html.
+        </div>
+        <!-- iframe формы добавляется сюда через JavaScript -->
       </div>
+
+      <p class="yandex-form-note">
+        Форма защищена технологиями Яндекс Форм. Отправляя заявку, вы соглашаетесь
+        с обработкой персональных данных в соответствии с политикой конфиденциальности.
+      </p>
     </div>
   </section>
 
@@ -832,7 +749,7 @@
   </footer>
 
   <!-- ============================================================
-       JAVASCRIPT: бургер-меню + валидация формы (имитация отправки)
+       JAVASCRIPT: бургер-меню + внедрение Яндекс Формы (iframe)
        ============================================================ -->
   <script>
     // ---------- Бургер-меню (мобильная навигация) ----------
@@ -855,85 +772,46 @@
       });
     });
 
-    // ---------- Валидация формы заявки ----------
-    const form = document.getElementById('requestForm');
-    const successMessage = document.getElementById('successMessage');
+    // ---------- Внедрение Яндекс Формы ----------
+    // Вставьте сюда ссылку из «Поделиться → Встроить на сайт» на forms.yandex.ru.
+    // Пример: 'https://forms.yandex.ru/cloud/6512f3a4b2c1d80a1bcdef12/'
+    const YANDEX_FORM_URL = ''; // <-- ЗАМЕНИТЕ НА СВОЮ ССЫЛКУ
 
-    const nameInput = document.getElementById('name');
-    const phoneInput = document.getElementById('phone');
-    const emailInput = document.getElementById('email');
-    const consentCheckbox = document.getElementById('consent');
+    const formWrap = document.getElementById('yandexFormWrap');
+    const placeholder = document.getElementById('yandexFormPlaceholder');
 
-    // Помощник: показать/скрыть ошибку у группы полей
-    function setFieldError(groupId, hasError) {
-      const group = document.getElementById(groupId);
-      if (group) group.classList.toggle('field-error', hasError);
-    }
+    if (YANDEX_FORM_URL.trim() !== '') {
+      // Убираем заглушку и создаём iframe с формой
+      placeholder.remove();
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault(); // реальная отправка не выполняется — только имитация
+      const frame = document.createElement('iframe');
+      frame.src = YANDEX_FORM_URL;
+      frame.className = 'yandex-form-frame';
+      frame.title = 'Форма заявки — Яндекс Формы';
+      frame.loading = 'lazy';
+      // Разрешаем внутри формы полноэкранный режим и загрузку файлов (если нужны)
+      frame.allow = 'fullscreen';
+      formWrap.appendChild(frame);
 
-      let valid = true;
-
-      // Имя — обязательно
-      if (nameInput.value.trim() === '') {
-        setFieldError('group-name', true);
-        valid = false;
-      } else {
-        setFieldError('group-name', false);
-      }
-
-      // Телефон или мессенджер — обязательно
-      if (phoneInput.value.trim() === '') {
-        setFieldError('group-contact', true);
-        valid = false;
-      } else {
-        setFieldError('group-contact', false);
-      }
-
-      // Email — опционален, но если заполнен — проверяем формат
-      const emailValue = emailInput.value.trim();
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (emailValue !== '' && !emailPattern.test(emailValue)) {
-        setFieldError('group-email', true);
-        valid = false;
-      } else {
-        setFieldError('group-email', false);
-      }
-
-      // Согласие на обработку данных — обязательно
-      const consentError = document.getElementById('consentError');
-      if (!consentCheckbox.checked) {
-        consentError.style.display = 'block';
-        valid = false;
-      } else {
-        consentError.style.display = 'none';
-      }
-
-      // При успехе — показываем сообщение и сбрасываем форму
-      if (valid) {
-        successMessage.classList.add('visible');
-        form.reset();
-
-        // Скрываем сообщение через несколько секунд
-        setTimeout(() => {
-          successMessage.classList.remove('visible');
-        }, 6000);
-      } else {
-        successMessage.classList.remove('visible');
-      }
-    });
-
-    // Убирать подсветку ошибки при начале ввода
-    [nameInput, phoneInput, emailInput].forEach(input => {
-      input.addEventListener('input', () => {
-        const group = input.closest('.form-group');
-        if (group) group.classList.remove('field-error');
+      // Подгоняем высоту iframe под содержимое формы, чтобы не было
+      // внутренней прокрутки. Яндекс отправляет postMessage с высотой.
+      window.addEventListener('message', (e) => {
+        // Проверяем, что сообщение от Яндекса и содержит числовую высоту
+        if (typeof e.data === 'string' && e.data.indexOf('height=') === 0) {
+          const height = parseInt(e.data.replace('height=', ''), 10);
+          if (!isNaN(height) && height > 0) {
+            frame.style.height = height + 40 + 'px'; // небольшой запас
+          }
+        }
       });
-    });
-    consentCheckbox.addEventListener('change', () => {
-      document.getElementById('consentError').style.display = 'none';
-    });
+
+      // Fallback: если postMessage не пришёл (например, форма короткая),
+      // через несколько секунд оставляем разумную высоту по умолчанию
+      setTimeout(() => {
+        if (!frame.style.height) frame.style.height = '700px';
+      }, 3000);
+    }
+    // Если YANDEX_FORM_URL пуст — остаётся видимой заглушка (placeholder)
   </script>
 </body>
 </html>
