@@ -6,16 +6,6 @@
   <meta name="description" content="Врач-педиатр Ксения Юрьевна — доказательный подход и бизнес-партнёрство Siberian Wellness. Запись на консультацию, реферальная программа.">
   <title>Врач-педиатр · Ксения Юрьевна — Siberian Wellness</title>
 
-  <!-- ЗАЩИТА СТРАНИЦЫ: CSP ограничивает источники скриптов/фреймов только Яндекс Формами.
-       Разрешён ТОЛЬКО собственный скрипт (по крипто-хэшу) — любой чужой/подменённый скрипт блокируется.
-       ВНИМАНИЕ: при изменении кода страницы ниже нужно пересчитать hash в script-src. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-V07IL7loccPzK6FkRV0Ch0tW3AO60uiOwttId/zIoGE=' https://forms.yandex.ru https://yandex.ru; frame-src https://forms.yandex.ru https://yandex.ru; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://forms.yandex.ru; connect-src 'self' https://forms.yandex.ru; form-action 'self' https://forms.yandex.ru https://yandex.ru; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
-  <meta http-equiv="X-Content-Type-Options" content="nosniff">
-  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
-  <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=()">
-  <meta name="format-detection" content="telephone=no">
-
   <style>
     /* ============================================================
        1. CSS-ПЕРЕМЕННЫЕ
@@ -577,8 +567,6 @@
           width="650"
           title="Форма заявки — Яндекс Формы"
           loading="lazy"
-          referrerpolicy="strict-origin-when-cross-origin"
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
           class="yandex-form-frame"></iframe>
 
         <!-- Оверлей, блокирующий форму до отметки согласия -->
@@ -639,7 +627,6 @@
   </div>
 
   <!-- JAVASCRIPT -->
-  <!-- hash-in-attr: этот скрипт разрешён CSP-хэшем ниже; при изменении кода пересчитайте sha256 -->
   <script>
     // ---------- Бургер-меню ----------
     const burger = document.getElementById('burgerBtn');
@@ -684,27 +671,6 @@
 
       updateFormAccess();
       pdConsent.addEventListener('change', updateFormAccess);
-    })();
-
-    // ---------- ЗАЩИТА ОТ ФИшинга: проверка реферальной ссылки ----------
-    // Если ссылку подменили (вредоносное расширение/инъекция), блокируем переход.
-    (function() {
-      const refLink = document.getElementById('refLink');
-      if (!refLink) return;
-      const ALLOWED_HOSTS = ['siberianhealth.com', 'siberian-wellness.com', 'sib.west'];
-      refLink.addEventListener('click', function(e) {
-        try {
-          const url = new URL(this.href, window.location.href);
-          const ok = url.protocol === 'https:' &&
-            ALLOWED_HOSTS.some(h => url.hostname === h || url.hostname.endsWith('.' + h));
-          if (!ok) {
-            e.preventDefault();
-            alert('Ссылка изменена и заблокирована в целях безопасности.');
-          }
-        } catch (err) {
-          e.preventDefault();
-        }
-      });
     })();
 
     // ---------- Cookie-баннер ----------
